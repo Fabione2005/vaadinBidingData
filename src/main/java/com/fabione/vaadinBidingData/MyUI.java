@@ -8,6 +8,7 @@ import javax.servlet.annotation.WebServlet;
 
 import com.fabione.clases.People;
 import com.fabione.interfaces.AddPerson;
+import com.fabione.interfaces.DeletePerson;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.data.Binder;
@@ -21,6 +22,7 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.ComboBox;
 
 /**
  * This UI is the application entry point. A UI may either represent a browser window 
@@ -77,14 +79,20 @@ public class MyUI extends UI {
 				Label info = new Label(binder.getBean().getName()+" "+binder.getBean().getAge()+" "+binder.getBean().getNationality()+" "+binder.getBean().getProfession());
 				layout.addComponent(labelInfo);
 				layout.addComponent(info);
+				
 				Button buttonBack = new Button("Go back to form..");
 				Button buttonSeeAll = new Button("See all registrared..");
+				Button buttonDeleteThis = new Button("Delete this register..");
+				Button buttonModifyThis = new Button("Modify a user..");
+				
 				layout.addComponent(buttonBack);
 				layout.addComponent(buttonSeeAll);
+				layout.addComponent(buttonDeleteThis);
+				layout.addComponent(buttonModifyThis);
+				
 				setContent(layout);
 				AddPerson add = (p,b) -> p.add(b);
 				add.addPerson(peopleAndarts,new People(binder.getBean()));
-				peopleAndarts.stream().forEach(System.out::print);
 				buttonBack.addClickListener(new Button.ClickListener() {
 					
 					private static final long serialVersionUID = 3255432766847634889L;
@@ -92,6 +100,25 @@ public class MyUI extends UI {
 					@Override
 					public void buttonClick(ClickEvent event) {
 						setContent(form);
+						
+						
+					}
+				});
+				buttonDeleteThis.addClickListener(new Button.ClickListener() {
+					
+					@Override
+					public void buttonClick(ClickEvent event) {
+						//final VerticalLayout layoutNew = new VerticalLayout();
+						People pd = peopleAndarts.stream().filter(p -> binder.getBean().getName().equalsIgnoreCase(p.getName())).findAny().orElse(null);
+						DeletePerson dl = (l,p) -> l.remove(p);
+						dl.deletePerson(peopleAndarts,pd);
+						layout.removeAllComponents();
+						layout.addComponent(buttonBack);
+						layout.addComponent(buttonSeeAll);
+						Label labelDeleteSucces = new Label("Usuario eliminado exitosamente!!");
+						layout.addComponent(labelDeleteSucces);
+						setContent(layout);
+						
 						
 						
 					}
@@ -109,7 +136,51 @@ public class MyUI extends UI {
 							layout.addComponent(persons);
 						}
 						layout.removeComponent(buttonSeeAll);
+						
 						setContent(layout);
+					}
+				});
+				
+				buttonModifyThis.addClickListener(new Button.ClickListener() {
+					
+					@Override
+					public void buttonClick(ClickEvent event) {
+						ComboBox<String> comboBox = new ComboBox<>("Personas");
+						if(!peopleAndarts.isEmpty()) {
+							LinkedList<String> listOfNames = new LinkedList<String>();
+							Iterator<People> it2 = peopleAndarts.iterator();
+							
+							while(it2.hasNext()) {
+								People perName = it2.next();
+								listOfNames.add(perName.getName());
+							}
+							comboBox.setItems(listOfNames);
+							Button buttonModifySelection = new Button("Modify selected");
+							layout.removeAllComponents();
+							layout.addComponent(comboBox);
+							layout.addComponent(buttonModifySelection);
+							
+							buttonModifySelection.addClickListener(new Button.ClickListener() {
+								
+								@Override
+								public void buttonClick(ClickEvent event) {
+									
+									if(!comboBox.getValue().isEmpty()) {
+										binder.setBean(peopleAndarts.stream().filter(p -> comboBox.getValue().equalsIgnoreCase(p.getName())).findAny().orElse(null));
+										Button buttonSetNewData = new Button("Set new data");
+										layout.removeAllComponents();
+										layout.addComponent(form);
+										layout.addComponent(buttonSetNewData);
+										setContent(layout);
+									}
+									
+									
+									
+								}
+							});
+							 
+						}
+						
 					}
 				});
 			}
