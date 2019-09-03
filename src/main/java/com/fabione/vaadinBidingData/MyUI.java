@@ -91,8 +91,7 @@ public class MyUI extends UI {
 				layout.addComponent(buttonModifyThis);
 				
 				setContent(layout);
-				AddPerson add = (p,b) -> p.add(b);
-				add.addPerson(peopleAndarts,new People(binder.getBean()));
+				addThis(peopleAndarts, binder);
 				buttonBack.addClickListener(new Button.ClickListener() {
 					
 					private static final long serialVersionUID = 3255432766847634889L;
@@ -108,20 +107,16 @@ public class MyUI extends UI {
 					
 					@Override
 					public void buttonClick(ClickEvent event) {
-						//final VerticalLayout layoutNew = new VerticalLayout();
-						People pd = peopleAndarts.stream().filter(p -> binder.getBean().getName().equalsIgnoreCase(p.getName())).findAny().orElse(null);
-						DeletePerson dl = (l,p) -> l.remove(p);
-						dl.deletePerson(peopleAndarts,pd);
+						deleteThis(peopleAndarts, binder);
 						layout.removeAllComponents();
 						layout.addComponent(buttonBack);
 						layout.addComponent(buttonSeeAll);
 						Label labelDeleteSucces = new Label("Usuario eliminado exitosamente!!");
 						layout.addComponent(labelDeleteSucces);
 						setContent(layout);
-						
-						
-						
 					}
+
+					
 				});
 				buttonSeeAll.addClickListener(new Button.ClickListener() {
 					
@@ -169,9 +164,30 @@ public class MyUI extends UI {
 										binder.setBean(peopleAndarts.stream().filter(p -> comboBox.getValue().equalsIgnoreCase(p.getName())).findAny().orElse(null));
 										Button buttonSetNewData = new Button("Set new data");
 										layout.removeAllComponents();
+										form.removeComponent(button);
 										layout.addComponent(form);
 										layout.addComponent(buttonSetNewData);
 										setContent(layout);
+										
+										buttonSetNewData.addClickListener(new Button.ClickListener() {
+											
+											@Override
+											public void buttonClick(ClickEvent event) {
+												deleteThis(peopleAndarts, binder);
+												addThis(peopleAndarts, binder);
+												Label confirmation = new Label("Usuario modificado exitosamente!!!");
+												Label message = new Label(binder.getBean().getName()+" "+binder.getBean().getAge()+" "+binder.getBean().getNationality()+" "+binder.getBean().getProfession());
+												layout.addComponent(confirmation);
+												layout.addComponent(message);
+												layout.addComponent(buttonBack);
+												layout.addComponent(buttonSeeAll);
+												layout.addComponent(buttonDeleteThis);
+												//layout.addComponent(buttonModifyThis);
+												setContent(layout);
+												
+												
+											}
+										});
 									}
 									
 									
@@ -185,9 +201,22 @@ public class MyUI extends UI {
 				});
 			}
 		}
+
+		
 	});
         
     }
+	
+	public void deleteThis(ArrayList<People> peopleAndarts, Binder<People> binder) {
+		People pd = peopleAndarts.stream().filter(p -> binder.getBean().getName().equalsIgnoreCase(p.getName())).findAny().orElse(null);
+		DeletePerson dl = (l,p) -> l.remove(p);
+		dl.deletePerson(peopleAndarts,pd);
+	}
+	
+	public void addThis(ArrayList<People> peopleAndarts, Binder<People> binder) {
+		AddPerson add = (p,b) -> p.add(b);
+		add.addPerson(peopleAndarts,new People(binder.getBean()));
+	}
 	
 	
 
