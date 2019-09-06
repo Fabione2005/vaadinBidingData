@@ -6,6 +6,7 @@ import java.util.LinkedList;
 
 import javax.servlet.annotation.WebServlet;
 
+import com.fabione.clases.ObjectUtils;
 import com.fabione.clases.People;
 import com.fabione.interfaces.AddPerson;
 import com.fabione.interfaces.DeletePerson;
@@ -41,6 +42,7 @@ public class MyUI extends UI {
 
 	@Override
     protected void init(VaadinRequest vaadinRequest) {
+		ObjectUtils buttonContainer = new ObjectUtils();
 		ArrayList<People> peopleAndarts = new ArrayList<People>();
         People p1 = new People();
         Binder<People> binder = new Binder<People>();
@@ -63,7 +65,10 @@ public class MyUI extends UI {
         form.addComponents(l1,labelName,name,labelAge,age,labelProfession,profession,labelNationality,nationality,button);
         binder.setBean(p1);
         setContent(form);
-        
+        ObjectUtils obj = new ObjectUtils();
+        obj.setForm(form);
+        obj.setBinder(binder);
+        obj.setPeopleAndarts(peopleAndarts);
         button.addClickListener(new Button.ClickListener() {
 		/**
 			 * 
@@ -74,24 +79,26 @@ public class MyUI extends UI {
 		public void buttonClick(com.vaadin.ui.Button.ClickEvent event) {
 			
 			if(binder.isValid()) {
-				final VerticalLayout layout = new VerticalLayout();
+				//final VerticalLayout layout = new VerticalLayout();
 				Label labelInfo = new Label("Registro exitoso!!");
-				Label info = new Label(binder.getBean().getName()+" "+binder.getBean().getAge()+" "+binder.getBean().getNationality()+" "+binder.getBean().getProfession());
-				layout.addComponent(labelInfo);
-				layout.addComponent(info);
-				
+				Label info = new Label(obj.getBinder().getBean().getName()+" "+obj.getBinder().getBean().getAge()+" "+obj.getBinder().getBean().getNationality()+" "+obj.getBinder().getBean().getProfession());
+				obj.getLayout().addComponent(labelInfo);
+				obj.getLayout().addComponent(info);
 				Button buttonBack = new Button("Go back to form..");
 				Button buttonSeeAll = new Button("See all registrared..");
 				Button buttonDeleteThis = new Button("Delete this register..");
 				Button buttonModifyThis = new Button("Modify a user..");
+				buttonContainer.getLayout().addComponent(buttonBack);
+				buttonContainer.getLayout().addComponent(buttonDeleteThis);
+				buttonContainer.getLayout().addComponent(buttonSeeAll);
+				obj.getLayout().addComponent(buttonBack);
+				obj.getLayout().addComponent(buttonSeeAll);
+				obj.getLayout().addComponent(buttonDeleteThis);
+				obj.getLayout().addComponent(buttonModifyThis);
 				
-				layout.addComponent(buttonBack);
-				layout.addComponent(buttonSeeAll);
-				layout.addComponent(buttonDeleteThis);
-				layout.addComponent(buttonModifyThis);
+				setContent(obj.getLayout());
+				addThis(obj);
 				
-				setContent(layout);
-				addThis(peopleAndarts, binder);
 				buttonBack.addClickListener(new Button.ClickListener() {
 					
 					private static final long serialVersionUID = 3255432766847634889L;
@@ -107,13 +114,15 @@ public class MyUI extends UI {
 					
 					@Override
 					public void buttonClick(ClickEvent event) {
-						deleteThis(peopleAndarts, binder);
-						layout.removeAllComponents();
-						layout.addComponent(buttonBack);
-						layout.addComponent(buttonSeeAll);
+						deleteThis(obj);
+						obj.getLayout().removeAllComponents();
+						obj.getLayout().addComponent(buttonBack);
+						obj.getLayout().addComponent(buttonSeeAll);
+						
 						Label labelDeleteSucces = new Label("Usuario eliminado exitosamente!!");
-						layout.addComponent(labelDeleteSucces);
-						setContent(layout);
+						obj.getLayout().addComponent(labelDeleteSucces);
+						setContent(obj.getLayout());
+						
 					}
 
 					
@@ -128,94 +137,109 @@ public class MyUI extends UI {
 						while(it1.hasNext()) {
 							People persona = it1.next();
 							Label persons = new Label(persona.toString());
-							layout.addComponent(persons);
+							obj.getLayout().addComponent(persons);
 						}
-						layout.removeComponent(buttonSeeAll);
-						
-						setContent(layout);
+						obj.getLayout().removeComponent(buttonSeeAll);
+						setContent(obj.getLayout());
 					}
 				});
 				
-				buttonModifyThis.addClickListener(new Button.ClickListener() {
-					
-					@Override
-					public void buttonClick(ClickEvent event) {
-						ComboBox<String> comboBox = new ComboBox<>("Personas");
-						if(!peopleAndarts.isEmpty()) {
-							LinkedList<String> listOfNames = new LinkedList<String>();
-							Iterator<People> it2 = peopleAndarts.iterator();
-							
-							while(it2.hasNext()) {
-								People perName = it2.next();
-								listOfNames.add(perName.getName());
-							}
-							comboBox.setItems(listOfNames);
-							Button buttonModifySelection = new Button("Modify selected");
-							layout.removeAllComponents();
-							layout.addComponent(comboBox);
-							layout.addComponent(buttonModifySelection);
-							
-							buttonModifySelection.addClickListener(new Button.ClickListener() {
-								
-								@Override
-								public void buttonClick(ClickEvent event) {
-									
-									if(!comboBox.getValue().isEmpty()) {
-										binder.setBean(peopleAndarts.stream().filter(p -> comboBox.getValue().equalsIgnoreCase(p.getName())).findAny().orElse(null));
-										Button buttonSetNewData = new Button("Set new data");
-										layout.removeAllComponents();
-										form.removeComponent(button);
-										layout.addComponent(form);
-										layout.addComponent(buttonSetNewData);
-										setContent(layout);
-										
-										buttonSetNewData.addClickListener(new Button.ClickListener() {
-											
-											@Override
-											public void buttonClick(ClickEvent event) {
-												deleteThis(peopleAndarts, binder);
-												addThis(peopleAndarts, binder);
-												Label confirmation = new Label("Usuario modificado exitosamente!!!");
-												Label message = new Label(binder.getBean().getName()+" "+binder.getBean().getAge()+" "+binder.getBean().getNationality()+" "+binder.getBean().getProfession());
-												layout.addComponent(confirmation);
-												layout.addComponent(message);
-												layout.addComponent(buttonBack);
-												layout.addComponent(buttonSeeAll);
-												layout.addComponent(buttonDeleteThis);
-												//layout.addComponent(buttonModifyThis);
-												setContent(layout);
-												
-												
-											}
-										});
-									}
-									
-									
-									
-								}
-							});
-							 
-						}
-						
-					}
-				});
+				modifyThis(buttonContainer, peopleAndarts, button, obj, buttonModifyThis);
 			}
 		}
+
+		
 
 		
 	});
         
     }
 	
-	public void deleteThis(ArrayList<People> peopleAndarts, Binder<People> binder) {
-		People pd = peopleAndarts.stream().filter(p -> binder.getBean().getName().equalsIgnoreCase(p.getName())).findAny().orElse(null);
+	public void deleteThis(ObjectUtils obj) {
+		People pd = obj.getPeopleAndarts().stream().filter(p -> obj.getBinder().getBean().getName().equalsIgnoreCase(p.getName())).findAny().orElse(null);
 		DeletePerson dl = (l,p) -> l.remove(p);
-		dl.deletePerson(peopleAndarts,pd);
+		dl.deletePerson(obj.getPeopleAndarts(),pd);
 	}
 	
-	public void addThis(ArrayList<People> peopleAndarts, Binder<People> binder) {
+	public void addThis(ObjectUtils obj) {
 		AddPerson add = (p,b) -> p.add(b);
-		add.addPerson(peopleAndarts,new People(binder.getBean()));
+		add.addPerson(obj.getPeopleAndarts(),new People(obj.getBinder().getBean()));
+	}
+	
+	public void SetModify(ObjectUtils obj, ObjectUtils buttons,Button btn) {
+		btn.addClickListener(new Button.ClickListener() {
+			
+			@Override
+			public void buttonClick(ClickEvent event) {
+				deleteThis(obj);
+				addThis(obj);
+				Label confirmation = new Label("Usuario modificado exitosamente!!!");
+				Label message = new Label(obj.getBinder().getBean().getName()+" "+obj.getBinder().getBean().getAge()+" "+obj.getBinder().getBean().getNationality()+" "+obj.getBinder().getBean().getProfession());
+				buttons.getLayout().addComponent(confirmation);
+				buttons.getLayout().addComponent(message);
+				setContent(buttons.getLayout());
+			}
+		});
+	}
+	
+	public void modifySelection(ObjectUtils buttonContainer, Button button, ObjectUtils obj, Button buttonModifySelection) {
+		buttonModifySelection.addClickListener(new Button.ClickListener() {
+			
+			@Override
+			public void buttonClick(ClickEvent event) {
+				
+				if(!obj.getComboBox().getValue().isEmpty()) {
+					obj.getBinder().setBean(obj.getPeopleAndarts().stream().filter(p -> obj.getComboBox().getValue().equalsIgnoreCase(p.getName())).findAny().orElse(null));
+					Button buttonSetNewData = new Button("Set new data");
+					buttonContainer.getLayout().addComponent(buttonSetNewData);
+					obj.getLayout().removeAllComponents();
+					obj.getForm().removeComponent(button);
+					obj.getLayout().addComponent(obj.getForm());
+					obj.getLayout().addComponent(buttonSetNewData);
+					setContent(obj.getLayout());
+					
+					SetModify(obj, buttonContainer, buttonSetNewData);
+				}
+				
+				
+				
+			}
+
+			
+		});
+	}
+	
+	public void modifyThis(ObjectUtils buttonContainer, ArrayList<People> peopleAndarts, Button button,
+			ObjectUtils obj, Button buttonModifyThis) {
+		buttonModifyThis.addClickListener(new Button.ClickListener() {
+			
+			@Override
+			public void buttonClick(ClickEvent event) {
+				ComboBox<String> comboBox = new ComboBox<>("Personas");
+				obj.setComboBox(comboBox);
+				if(!peopleAndarts.isEmpty()) {
+					LinkedList<String> listOfNames = new LinkedList<String>();
+					Iterator<People> it2 = peopleAndarts.iterator();
+					
+					while(it2.hasNext()) {
+						People perName = it2.next();
+						listOfNames.add(perName.getName());
+					}
+					obj.getComboBox().setItems(listOfNames);
+					Button buttonModifySelection = new Button("Modify selected");
+					obj.getLayout().removeAllComponents();
+					obj.getLayout().addComponent(obj.getComboBox());
+					obj.getLayout().addComponent(buttonModifySelection);
+					
+					modifySelection(buttonContainer, button, obj,
+							buttonModifySelection);
+					 
+				}
+				
+			}
+
+			
+		});
 	}
 	
 	
