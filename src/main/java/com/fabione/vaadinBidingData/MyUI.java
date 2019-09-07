@@ -68,7 +68,7 @@ public class MyUI extends UI {
         ObjectUtils obj = new ObjectUtils();
         obj.setForm(form);
         obj.setBinder(binder);
-        obj.setPeopleAndarts(peopleAndarts);
+        
         button.addClickListener(new Button.ClickListener() {
 		/**
 			 * 
@@ -78,16 +78,19 @@ public class MyUI extends UI {
 		@Override
 		public void buttonClick(com.vaadin.ui.Button.ClickEvent event) {
 			
-			if(binder.isValid()) {
-				//final VerticalLayout layout = new VerticalLayout();
+			if(obj.getBinder().isValid()) {
+				//final VerticalLayout layout = 
+				obj.setLayout(new VerticalLayout());
 				Label labelInfo = new Label("Registro exitoso!!");
 				Label info = new Label(obj.getBinder().getBean().getName()+" "+obj.getBinder().getBean().getAge()+" "+obj.getBinder().getBean().getNationality()+" "+obj.getBinder().getBean().getProfession());
+				
 				obj.getLayout().addComponent(labelInfo);
 				obj.getLayout().addComponent(info);
 				Button buttonBack = new Button("Go back to form..");
 				Button buttonSeeAll = new Button("See all registrared..");
 				Button buttonDeleteThis = new Button("Delete this register..");
 				Button buttonModifyThis = new Button("Modify a user..");
+				buttonContainer.setLayout(new VerticalLayout());
 				buttonContainer.getLayout().addComponent(buttonBack);
 				buttonContainer.getLayout().addComponent(buttonDeleteThis);
 				buttonContainer.getLayout().addComponent(buttonSeeAll);
@@ -97,7 +100,8 @@ public class MyUI extends UI {
 				obj.getLayout().addComponent(buttonModifyThis);
 				
 				setContent(obj.getLayout());
-				addThis(obj);
+				addThis(obj,peopleAndarts);
+				obj.setPeopleAndarts(peopleAndarts);
 				
 				buttonBack.addClickListener(new Button.ClickListener() {
 					
@@ -110,43 +114,16 @@ public class MyUI extends UI {
 						
 					}
 				});
-				buttonDeleteThis.addClickListener(new Button.ClickListener() {
-					
-					@Override
-					public void buttonClick(ClickEvent event) {
-						deleteThis(obj);
-						obj.getLayout().removeAllComponents();
-						obj.getLayout().addComponent(buttonBack);
-						obj.getLayout().addComponent(buttonSeeAll);
-						
-						Label labelDeleteSucces = new Label("Usuario eliminado exitosamente!!");
-						obj.getLayout().addComponent(labelDeleteSucces);
-						setContent(obj.getLayout());
-						
-					}
-
-					
-				});
-				buttonSeeAll.addClickListener(new Button.ClickListener() {
-					
-					private static final long serialVersionUID = 8462101421731560938L;
-
-					@Override
-					public void buttonClick(ClickEvent event) {
-						Iterator<People> it1 = peopleAndarts.iterator();
-						while(it1.hasNext()) {
-							People persona = it1.next();
-							Label persons = new Label(persona.toString());
-							obj.getLayout().addComponent(persons);
-						}
-						obj.getLayout().removeComponent(buttonSeeAll);
-						setContent(obj.getLayout());
-					}
-				});
+				deleteThis(obj, buttonBack, buttonSeeAll, buttonDeleteThis);
+				seeAll(obj, buttonSeeAll);
 				
 				modifyThis(buttonContainer, peopleAndarts, button, obj, buttonModifyThis);
 			}
 		}
+
+		
+
+		
 
 		
 
@@ -161,9 +138,9 @@ public class MyUI extends UI {
 		dl.deletePerson(obj.getPeopleAndarts(),pd);
 	}
 	
-	public void addThis(ObjectUtils obj) {
+	public void addThis(ObjectUtils obj,ArrayList<People> peopleAndarts) {
 		AddPerson add = (p,b) -> p.add(b);
-		add.addPerson(obj.getPeopleAndarts(),new People(obj.getBinder().getBean()));
+		add.addPerson(peopleAndarts,new People(obj.getBinder().getBean()));
 	}
 	
 	public void SetModify(ObjectUtils obj, ObjectUtils buttons,Button btn) {
@@ -172,7 +149,7 @@ public class MyUI extends UI {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				deleteThis(obj);
-				addThis(obj);
+				addThis(obj,obj.getPeopleAndarts());
 				Label confirmation = new Label("Usuario modificado exitosamente!!!");
 				Label message = new Label(obj.getBinder().getBean().getName()+" "+obj.getBinder().getBean().getAge()+" "+obj.getBinder().getBean().getNationality()+" "+obj.getBinder().getBean().getProfession());
 				buttons.getLayout().addComponent(confirmation);
@@ -235,6 +212,45 @@ public class MyUI extends UI {
 							buttonModifySelection);
 					 
 				}
+				
+			}
+
+			
+		});
+	}
+	
+	public void seeAll(ObjectUtils obj, Button buttonSeeAll) {
+		buttonSeeAll.addClickListener(new Button.ClickListener() {
+			
+			private static final long serialVersionUID = 8462101421731560938L;
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				Iterator<People> it1 = obj.getPeopleAndarts().iterator();//peopleAndarts.iterator();
+				while(it1.hasNext()) {
+					People persona = it1.next();
+					//Label persons = new Label(persona.toString());
+					obj.getLayout().addComponent(new Label(persona.toString()));
+				}
+				obj.getLayout().removeComponent(buttonSeeAll);
+				setContent(obj.getLayout());
+			}
+		});
+	}
+	
+	public void deleteThis(ObjectUtils obj, Button buttonBack, Button buttonSeeAll, Button buttonDeleteThis) {
+		buttonDeleteThis.addClickListener(new Button.ClickListener() {
+			
+			@Override
+			public void buttonClick(ClickEvent event) {
+				//deleteThis(obj);
+				obj.getLayout().removeAllComponents();
+				obj.getLayout().addComponent(buttonBack);
+				obj.getLayout().addComponent(buttonSeeAll);
+				
+				Label labelDeleteSucces = new Label("Usuario eliminado exitosamente!!");
+				obj.getLayout().addComponent(labelDeleteSucces);
+				setContent(obj.getLayout());
 				
 			}
 

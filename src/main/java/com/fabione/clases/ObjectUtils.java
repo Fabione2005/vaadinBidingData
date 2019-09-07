@@ -48,6 +48,7 @@ public class ObjectUtils {
 	}
 
 	public void setPeopleAndarts(ArrayList<People> peopleAndarts) {
+		this.peopleAndarts = new ArrayList<People>();
 		this.peopleAndarts.addAll(peopleAndarts);
 	}
 
