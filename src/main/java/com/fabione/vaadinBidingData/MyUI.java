@@ -42,7 +42,8 @@ public class MyUI extends UI {
 
 	@Override
     protected void init(VaadinRequest vaadinRequest) {
-		ObjectUtils buttonContainer = new ObjectUtils();
+		final ObjectUtils buttonContainer = new ObjectUtils();
+		
 		ArrayList<People> peopleAndarts = new ArrayList<People>();
         People p1 = new People();
         Binder<People> binder = new Binder<People>();
@@ -69,6 +70,10 @@ public class MyUI extends UI {
         obj.setForm(form);
         obj.setBinder(binder);
         
+        
+		
+		//buttonContainer = new ObjectUtils();
+        
         button.addClickListener(new Button.ClickListener() {
 		/**
 			 * 
@@ -94,14 +99,13 @@ public class MyUI extends UI {
 				buttonContainer.getLayout().addComponent(buttonBack);
 				buttonContainer.getLayout().addComponent(buttonDeleteThis);
 				buttonContainer.getLayout().addComponent(buttonSeeAll);
-				obj.getLayout().addComponent(buttonBack);
-				obj.getLayout().addComponent(buttonSeeAll);
-				obj.getLayout().addComponent(buttonDeleteThis);
-				obj.getLayout().addComponent(buttonModifyThis);
+				buttonContainer.getLayout().addComponent(buttonModifyThis);
+				
+				obj.getLayout().addComponent(buttonContainer.getLayout());
 				
 				setContent(obj.getLayout());
 				addThis(obj,peopleAndarts);
-				obj.setPeopleAndarts(peopleAndarts);
+				//obj.setPeopleAndarts(peopleAndarts);
 				
 				buttonBack.addClickListener(new Button.ClickListener() {
 					
@@ -115,7 +119,7 @@ public class MyUI extends UI {
 					}
 				});
 				deleteThis(obj, buttonBack, buttonSeeAll, buttonDeleteThis);
-				seeAll(obj, buttonSeeAll);
+				seeAll(obj,buttonSeeAll,buttonContainer);
 				
 				modifyThis(buttonContainer, peopleAndarts, button, obj, buttonModifyThis);
 			}
@@ -140,7 +144,7 @@ public class MyUI extends UI {
 	
 	public void addThis(ObjectUtils obj,ArrayList<People> peopleAndarts) {
 		AddPerson add = (p,b) -> p.add(b);
-		add.addPerson(peopleAndarts,new People(obj.getBinder().getBean()));
+		add.addPerson(obj.getPeopleAndarts(),new People(obj.getBinder().getBean()));
 	}
 	
 	public void SetModify(ObjectUtils obj, ObjectUtils buttons,Button btn) {
@@ -168,12 +172,19 @@ public class MyUI extends UI {
 				if(!obj.getComboBox().getValue().isEmpty()) {
 					obj.getBinder().setBean(obj.getPeopleAndarts().stream().filter(p -> obj.getComboBox().getValue().equalsIgnoreCase(p.getName())).findAny().orElse(null));
 					Button buttonSetNewData = new Button("Set new data");
-					buttonContainer.getLayout().addComponent(buttonSetNewData);
-					obj.getLayout().removeAllComponents();
-					obj.getForm().removeComponent(button);
-					obj.getLayout().addComponent(obj.getForm());
-					obj.getLayout().addComponent(buttonSetNewData);
-					setContent(obj.getLayout());
+					FormLayout formModify = new FormLayout();
+					//buttonContainer.getLayout().addComponent(buttonSetNewData);
+					
+					//obj.getLayout().removeAllComponents();
+					//obj.getForm().removeComponent(button);
+					//obj.getLayout().addComponent(obj.getForm());
+					//formModify.removeAllComponents();
+					formModify = obj.getForm();
+					formModify.removeComponent(button);
+					formModify.addComponent(buttonSetNewData);
+					setContent(formModify);
+					obj.getLayout().removeComponent(obj.getComboBox());
+					obj.getLayout().removeComponent(buttonModifySelection);
 					
 					SetModify(obj, buttonContainer, buttonSetNewData);
 				}
@@ -194,9 +205,10 @@ public class MyUI extends UI {
 			public void buttonClick(ClickEvent event) {
 				ComboBox<String> comboBox = new ComboBox<>("Personas");
 				obj.setComboBox(comboBox);
-				if(!peopleAndarts.isEmpty()) {
+				if(!obj.getPeopleAndarts().isEmpty()) {
+					VerticalLayout layout = new VerticalLayout();
 					LinkedList<String> listOfNames = new LinkedList<String>();
-					Iterator<People> it2 = peopleAndarts.iterator();
+					Iterator<People> it2 = obj.getPeopleAndarts().iterator();
 					
 					while(it2.hasNext()) {
 						People perName = it2.next();
@@ -204,12 +216,15 @@ public class MyUI extends UI {
 					}
 					obj.getComboBox().setItems(listOfNames);
 					Button buttonModifySelection = new Button("Modify selected");
+					layout.addComponent(obj.getLayout());
 					obj.getLayout().removeAllComponents();
 					obj.getLayout().addComponent(obj.getComboBox());
 					obj.getLayout().addComponent(buttonModifySelection);
 					
 					modifySelection(buttonContainer, button, obj,
 							buttonModifySelection);
+					
+					
 					 
 				}
 				
@@ -219,21 +234,27 @@ public class MyUI extends UI {
 		});
 	}
 	
-	public void seeAll(ObjectUtils obj, Button buttonSeeAll) {
+	public void seeAll(ObjectUtils obj, Button buttonSeeAll,ObjectUtils buttonContainer) {
 		buttonSeeAll.addClickListener(new Button.ClickListener() {
 			
 			private static final long serialVersionUID = 8462101421731560938L;
 
 			@Override
 			public void buttonClick(ClickEvent event) {
-				Iterator<People> it1 = obj.getPeopleAndarts().iterator();//peopleAndarts.iterator();
-				while(it1.hasNext()) {
-					People persona = it1.next();
-					//Label persons = new Label(persona.toString());
-					obj.getLayout().addComponent(new Label(persona.toString()));
-				}
+				
+					Iterator<People> it1 = obj.getPeopleAndarts().iterator();//peopleAndarts.iterator();
+					while(it1.hasNext()) {
+						People persona = it1.next();
+						//Label persons = new Label(persona.toString());
+						obj.getLayout().addComponent(new Label(persona.toString()));
+					}
+				
+				
+				buttonContainer.getLayout().removeComponent(buttonSeeAll);
 				obj.getLayout().removeComponent(buttonSeeAll);
 				setContent(obj.getLayout());
+				
+				buttonContainer.getLayout().addComponent(buttonSeeAll);
 			}
 		});
 	}
@@ -243,7 +264,7 @@ public class MyUI extends UI {
 			
 			@Override
 			public void buttonClick(ClickEvent event) {
-				//deleteThis(obj);
+				deleteThis(obj);
 				obj.getLayout().removeAllComponents();
 				obj.getLayout().addComponent(buttonBack);
 				obj.getLayout().addComponent(buttonSeeAll);

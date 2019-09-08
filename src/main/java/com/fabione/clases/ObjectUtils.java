@@ -11,7 +11,7 @@ import com.vaadin.ui.VerticalLayout;
 
 public class ObjectUtils {
 
-	private ArrayList<People> peopleAndarts = null;
+	private ArrayList<People> peopleAndarts = new ArrayList<People>();
 	private Binder<People> binder = null;
 	private FormLayout form = null;
 	
@@ -19,9 +19,12 @@ public class ObjectUtils {
 	private Button button = null;
 	private VerticalLayout layout = null;
 	private ComboBox<String> comboBox = null;
+	private int counter = 0;
 	
 	
 	
+
+
 
 	public ObjectUtils(ArrayList<People> peopleAndarts,Binder<People> binder,FormLayout form,Label l1,VerticalLayout layout){
 		this.peopleAndarts = peopleAndarts;
@@ -33,6 +36,14 @@ public class ObjectUtils {
 	
 	public ObjectUtils(){
 		
+	}
+	
+	public int getCounter() {
+		return counter;
+	}
+
+	public void setCounter(int counter) {
+		this.counter = counter;
 	}
 	
 	public ComboBox<String> getComboBox() {
